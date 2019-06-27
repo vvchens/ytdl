@@ -5,7 +5,7 @@ const process = require('process');
 const path = require('path');
 // ytdl('http://www.youtube.com/watch?v=A02s8omM_hI')
 //   .pipe(fs.createWriteStream('video.flv'));
-//   ytdl('https://www.youtube.com/watch?v=cOBQgUZnceg', { 
+//   ytdl('https://www.youtube.com/watch?v=cOBQgUZnceg', {
 //       quality:'highestaudio' })
 // //   filter:(format) => format.container === 'mp4' })
 //   .pipe(fs.createWriteStream('shuo.mp3')).once('close', () => {
@@ -20,7 +20,7 @@ const REMOTEBASEPATH = ''
 
 function downloadByYTDL(url, callback = () => {}) {
     const options = {
-        quality:'highestaudio' 
+        quality:'highestaudio'
     };
     console.log("starting with " + url)
     ytdl.getInfo(url, options, (err, info) => {
@@ -142,6 +142,9 @@ function getMusic(name) {
     else
         return '';
 }
-
-
+function prepare() {
+    fs.existsSync(path.join(LOCALBASEPATH, 'raw')) || fs.mkdirSync(path.join(LOCALBASEPATH, 'raw'));
+    fs.existsSync(path.join(LOCALBASEPATH, 'mp3')) || fs.mkdirSync(path.join(LOCALBASEPATH, 'mp3'));
+}
+prepare();
 startServer();
