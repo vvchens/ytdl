@@ -87,7 +87,12 @@ function startServer(port = 8889) {
                 case "GET":
                 {
                     if (music) {
-                        response.write(getMusic(decodeURIComponent(music)));
+                        let index = music.match(/^\d+$/);
+                        if (index) {
+                            response.write(getMusic(getMusicList()[index[0]]));
+                        } else {
+                            response.write(getMusic(decodeURIComponent(music)));
+                        }
                     } else {
                         response.setHeader("contentType", 'application/json');
                         response.write(JSON.stringify(getMusicList()));
