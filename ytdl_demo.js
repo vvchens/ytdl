@@ -89,10 +89,15 @@ function startServer(port = 8889) {
                     if (music) {
                         let index = music.match(/^\d+$/);
                         response.setHeader("content-type", "audio/mpeg");
+                        let file;
                         if (index) {
-                            response.write(getMusic(getMusicList()[index[0]]));
+                            file = getMusic(getMusicList()[index[0]]); 
                         } else {
-                            response.write(getMusic(decodeURIComponent(music)));
+                            file = getMusic(decodeURIComponent(music));
+                        }
+                        if (file) {
+                            response.setHeader('content-length', file.byteLength);
+                            response.write(file);
                         }
                     } else {
                         response.setHeader("contentType", 'application/json');
