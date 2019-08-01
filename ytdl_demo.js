@@ -100,7 +100,7 @@ function startServer(port = 8889) {
                             response.write(file);
                         }
                     } else {
-                        response.setHeader("contentType", 'application/json');
+                        response.setHeader("contentType", 'application/json; charset=utf-8');
                         response.write(JSON.stringify(getMusicList()));
                     }
                     response.end();
