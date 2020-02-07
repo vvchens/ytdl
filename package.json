@@ -11,6 +11,6 @@
   "license": "ISC",
   "dependencies": {
     "ffmpeg": "0.0.4",
-    "ytdl-core": "^0.29.1"
+    "ytdl-core": "^1.0.7"
   }
 }
