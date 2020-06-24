@@ -101,7 +101,9 @@ function startServer(port = 8889) {
                         }
                     } else {
                         response.setHeader("contentType", 'application/json; charset=utf-8');
+                        response.write('<html><head><meta charset="UTF-8"><body>');
                         response.write(getMusicList().map(music => `<a href="/music/${music}">${music}</a>`).join("<br />"));
+                        response.write('</body></html>');
                     }
                     response.end();
                     break;
