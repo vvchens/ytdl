@@ -114,6 +114,10 @@ function startServer(port = 8889) {
                     });
                     request.on('end', () => {
                         downloadByYTDL(link, (file) => {
+                            if (!file) {
+                                response.end("download error");
+                                return;
+                            }
                             convertToMP3(file, (music) => {
                                 if (music) {
                                     fs.unlinkSync(file);
