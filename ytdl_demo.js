@@ -20,7 +20,8 @@ const REMOTEBASEPATH = ''
 
 function downloadByYTDL(url, callback = () => {}) {
     const options = {
-        quality:'highestaudio'
+        quality:'highestaudio',
+        filter: (info) => !!info.url,
     };
     console.log("starting with " + url)
     ytdl.getInfo(url, options, (err, info) => {
