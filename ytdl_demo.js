@@ -3,6 +3,7 @@ const ytdl = require('ytdl-core');
 const ffmpeg = require('ffmpeg');
 const process = require('process');
 const path = require('path');
+const { URL } = require('url');
 // ytdl('http://www.youtube.com/watch?v=A02s8omM_hI')
 //   .pipe(fs.createWriteStream('video.flv'));
 //   ytdl('https://www.youtube.com/watch?v=cOBQgUZnceg', {
@@ -103,7 +104,7 @@ function startServer(port = 8889) {
                     } else {
                         response.setHeader("contentType", 'application/json; charset=utf-8');
                         response.write('<html><head><meta charset="UTF-8"><body>');
-                        response.write(getMusicList().map(music => `<a href="/music/${music}">${music}</a>`).join("<br />"));
+                        response.write(getMusicList().map(music => `<a href="/music/${encodeURI(music)}">${music}</a>`).join("<br />"));
                         response.write(`<script>function f(u){fetch("/music", {method:"post",body:u})}</script>`);
                         response.write(`<input /><button onclick="f(document.getElementsByTagName('input')[0].value)">Add</button>`);
                         response.write('</body></html>');
