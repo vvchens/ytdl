@@ -3,7 +3,6 @@ const ytdl = require('ytdl-core');
 const ffmpeg = require('ffmpeg');
 const process = require('process');
 const path = require('path');
-const { URL } = require('url');
 // ytdl('http://www.youtube.com/watch?v=A02s8omM_hI')
 //   .pipe(fs.createWriteStream('video.flv'));
 //   ytdl('https://www.youtube.com/watch?v=cOBQgUZnceg', {
@@ -150,6 +149,7 @@ function startServer(port = 8889) {
     server.on('connection', (socket) => {
         console.log('new connection');
     })
+    server.timeout = 5 * 60 * 1000; // 5min
     server.listen(port);
 }
 
