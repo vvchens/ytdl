@@ -26,7 +26,7 @@ function downloadByYTDL(url, callback = () => {}) {
     console.log("starting with " + url)
     ytdl.getInfo(url, options, (err, info) => {
         if (!err) {
-            let filename = info.title;
+            let filename = info.title.replace(/[ '"\/\\\(\)]/g, '');
             let fullpath = path.join(LOCALBASEPATH, 'raw', filename + ".raw");
             ytdl.downloadFromInfo(info, options)
             .pipe(fs.createWriteStream(fullpath))
