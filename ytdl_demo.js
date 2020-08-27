@@ -98,14 +98,14 @@ function startServer(port = 8889) {
                         }
                         if (file) {
                             response.setHeader('content-length', file.byteLength);
-                            response.write(file);
+                            file.pipe(response);
                         }
                     } else {
                         response.setHeader("contentType", 'application/json; charset=utf-8');
                         response.write('<html><head><meta charset="UTF-8"><body>');
                         response.write(getMusicList().map(music => `<a href="/music/${encodeURI(music)}">${music}</a>`).join("<br />"));
-                        response.write(`<script>function f(u){fetch("/music", {method:"post",body:u})}</script>`);
-                        response.write(`<input /><button onclick="f(document.getElementsByTagName('input')[0].value)">Add</button>`);
+                        response.write(`<script>function f(u){fetch("/music", {method:"post",body:u}).then(r=>if(r.ok)document.getElementById('new').value='')}</script>`);
+                        response.write(`<input id='new' /><button onclick="f(document.getElementById('new').value)">Add</button>`);
                         response.write('</body></html>');
                     }
                     response.end();
@@ -159,7 +159,7 @@ function getMusicList() {
 function getMusic(name) {
     let fullpath = path.join(LOCALBASEPATH, 'mp3', name);
     if (fs.existsSync(fullpath))
-        return fs.readFileSync(fullpath);
+        return fs.createReadStream(fullpath);
     else
         return '';
 }
