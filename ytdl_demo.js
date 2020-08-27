@@ -99,6 +99,7 @@ function startServer(port = 8889) {
                         if (file) {
                             // response.setHeader('content-length', file.readableLength);
                             file.pipe(response);
+                            return;
                         }
                     } else {
                         response.setHeader("contentType", 'application/json; charset=utf-8');
