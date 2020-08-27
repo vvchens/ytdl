@@ -97,7 +97,7 @@ function startServer(port = 8889) {
                             file = getMusic(decodeURIComponent(music));
                         }
                         if (file) {
-                            response.setHeader('content-length', file.byteLength);
+                            // response.setHeader('content-length', file.readableLength);
                             file.pipe(response);
                         }
                     } else {
@@ -161,7 +161,7 @@ function getMusic(name) {
     if (fs.existsSync(fullpath))
         return fs.createReadStream(fullpath);
     else
-        return '';
+        return null;
 }
 function prepare() {
     fs.existsSync(path.join(LOCALBASEPATH, 'raw')) || fs.mkdirSync(path.join(LOCALBASEPATH, 'raw'));
