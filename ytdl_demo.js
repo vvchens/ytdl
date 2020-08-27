@@ -104,7 +104,7 @@ function startServer(port = 8889) {
                         response.setHeader("contentType", 'application/json; charset=utf-8');
                         response.write('<html><head><meta charset="UTF-8"><body>');
                         response.write(getMusicList().map(music => `<a href="/music/${encodeURI(music)}">${music}</a>`).join("<br />"));
-                        response.write(`<script>function f(u){fetch("/music", {method:"post",body:u}).then(r=>if(r.ok)document.getElementById('new').value='')}</script>`);
+                        response.write(`<script>function f(u){fetch("/music", {method:"post",body:u}).then(r=>{if(r.ok)document.getElementById('new').value=''})}</script>`);
                         response.write(`<input id='new' /><button onclick="f(document.getElementById('new').value)">Add</button>`);
                         response.write('</body></html>');
                     }
