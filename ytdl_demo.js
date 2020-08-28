@@ -127,10 +127,9 @@ function startServer(port = 8889) {
                             convertToMP3(file, (music) => {
                                 if (music) {
                                     fs.unlinkSync(file);
-                                    response.write(path.basename(music).replace(/'$/, ''));
                                 }
-                                response.end();
                             });
+                            response.end();
                         });
                     });
                     break;
