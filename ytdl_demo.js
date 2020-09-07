@@ -40,7 +40,7 @@ function downloadByYTDL(url, callback = () => {}) {
 }
 function convertToMP3(file, callback = ()=>{}) {
     let src = file;
-    let desc = path.join(LOCALBASEPATH, 'mp3', path.parse(file).name + ".mp3");
+    let desc = path.join(LOCALBASEPATH, 'tmp', path.parse(file).name + ".mp3");
     try {
         console.log("converting :" + file)
         var process = new ffmpeg(src);
@@ -117,6 +117,7 @@ function startServer(port = 8889) {
                             convertToMP3(file, (music) => {
                                 if (music) {
                                     fs.unlinkSync(file);
+                                    moveMusic(music)
                                     response.write(path.basename(music).replace(/'$/, ''));
                                 }
                                 response.end();
@@ -143,6 +144,10 @@ function startServer(port = 8889) {
     server.listen(port);
 }
 
+function moveMusic(tmpmp3) {
+    // let tmp = path.join(LOCALBASEPATH, 'tmp', tmpmp3)
+    fs.renameSync(tmpmp3, tmpmp3.replace("/tmp/", "/mp3/"))
+}
 function getMusicList() {
     return fs.readdirSync(path.join(LOCALBASEPATH, 'mp3'));
 }
@@ -156,6 +161,7 @@ function getMusic(name) {
 function prepare() {
     fs.existsSync(path.join(LOCALBASEPATH, 'raw')) || fs.mkdirSync(path.join(LOCALBASEPATH, 'raw'));
     fs.existsSync(path.join(LOCALBASEPATH, 'mp3')) || fs.mkdirSync(path.join(LOCALBASEPATH, 'mp3'));
+    fs.existsSync(path.join(LOCALBASEPATH, 'tmp')) || fs.mkdirSync(path.join(LOCALBASEPATH, 'tmp'));
 }
 prepare();
 startServer();
