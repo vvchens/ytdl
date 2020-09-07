@@ -20,14 +20,15 @@ const REMOTEBASEPATH = ''
 
 function downloadByYTDL(url, callback = () => {}) {
     const options = {
-        quality:'highestaudio'
+        quality:'highestaudio',
+        filter: (info) => !!info.url,
     };
     console.log("starting with " + url)
     ytdl.getInfo(url, options, (err, info) => {
         if (!err) {
-            let filename = info.title;
+            let filename = info.title.replace(/[ '"\/\\\(\)]/g, '');
             let fullpath = path.join(LOCALBASEPATH, 'raw', filename + ".raw");
-            ytdl.downloadFromInfo(info)
+            ytdl.downloadFromInfo(info, options)
             .pipe(fs.createWriteStream(fullpath))
             .once('close', () => {
                 console.log("downloaded " + url)
@@ -96,12 +97,17 @@ function startServer(port = 8889) {
                             file = getMusic(decodeURIComponent(music));
                         }
                         if (file) {
-                            response.setHeader('content-length', file.byteLength);
-                            response.write(file);
+                            // response.setHeader('content-length', file.readableLength);
+                            file.pipe(response);
+                            return;
                         }
                     } else {
                         response.setHeader("contentType", 'application/json; charset=utf-8');
-                        response.write(JSON.stringify(getMusicList()));
+                        response.write('<html><head><meta charset="UTF-8"><body>');
+                        response.write(getMusicList().map(music => `<a href="/music/${encodeURI(music)}">${music}</a>`).join("<br />"));
+                        response.write(`<script>function f(u){fetch("/music", {method:"post",body:u}).then(r=>{if(r.ok)document.getElementById('new').value=''})}</script>`);
+                        response.write(`<input id='new' /><button onclick="f(document.getElementById('new').value)">Add</button>`);
+                        response.write('</body></html>');
                     }
                     response.end();
                     break;
@@ -114,14 +120,17 @@ function startServer(port = 8889) {
                     });
                     request.on('end', () => {
                         downloadByYTDL(link, (file) => {
+                            if (!file) {
+                                response.end("download error");
+                                return;
+                            }
                             convertToMP3(file, (music) => {
                                 if (music) {
                                     fs.unlinkSync(file);
                                     moveMusic(music)
-                                    response.write(path.basename(music).replace(/'$/, ''));
                                 }
-                                response.end();
                             });
+                            response.end();
                         });
                     });
                     break;
@@ -141,6 +150,7 @@ function startServer(port = 8889) {
     server.on('connection', (socket) => {
         console.log('new connection');
     })
+    server.timeout = 5 * 60 * 1000; // 5min
     server.listen(port);
 }
 
@@ -154,9 +164,9 @@ function getMusicList() {
 function getMusic(name) {
     let fullpath = path.join(LOCALBASEPATH, 'mp3', name);
     if (fs.existsSync(fullpath))
-        return fs.readFileSync(fullpath);
+        return fs.createReadStream(fullpath);
     else
-        return '';
+        return null;
 }
 function prepare() {
     fs.existsSync(path.join(LOCALBASEPATH, 'raw')) || fs.mkdirSync(path.join(LOCALBASEPATH, 'raw'));
