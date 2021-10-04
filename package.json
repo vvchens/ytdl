@@ -11,6 +11,6 @@
   "license": "ISC",
   "dependencies": {
     "ffmpeg": "git+https://github.com/vvchens/node-ffmpeg.git",
-    "ytdl-core": "^2.1.7"
+    "ytdl-core": "latest"
   }
 }

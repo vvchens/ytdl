@@ -18,28 +18,24 @@ const path = require('path');
 const LOCALBASEPATH = './'
 const REMOTEBASEPATH = ''
 
-function downloadByYTDL(url, callback = () => {}) {
+function downloadByYTDL(url, callback = () => { }) {
     const options = {
-        quality:'highestaudio',
+        quality: 'highestaudio',
         filter: (info) => !!info.url,
     };
     console.log("starting with " + url)
-    ytdl.getInfo(url, options, (err, info) => {
-        if (!err) {
-            let filename = info.title.replace(/[ '"\/\\\(\)]/g, '');
-            let fullpath = path.join(LOCALBASEPATH, 'raw', filename + ".raw");
-            ytdl.downloadFromInfo(info, options)
+    ytdl.getInfo(url, options).then(info => {
+        let filename = info.videoDetails.title.replace(/[ '"\/\\\(\)]/g, '');
+        let fullpath = path.join(LOCALBASEPATH, 'raw', filename + ".raw");
+        ytdl.downloadFromInfo(info, options)
             .pipe(fs.createWriteStream(fullpath))
             .once('close', () => {
                 console.log("downloaded " + url)
                 callback(fullpath);
             })
-        } else {
-            callback();
-        }
-    })
+    }).catch(e => callback())
 }
-function convertToMP3(file, callback = ()=>{}) {
+function convertToMP3(file, callback = () => { }) {
     let src = file;
     let desc = path.join(LOCALBASEPATH, 'tmp', path.parse(file).name + ".mp3");
     try {
@@ -86,59 +82,59 @@ function startServer(port = 8889) {
             let music = argvs[2];
             switch (request.method.toUpperCase()) {
                 case "GET":
-                {
-                    if (music) {
-                        let index = music.match(/^\d+$/);
-                        response.setHeader("content-type", "audio/mpeg");
-                        let file;
-                        if (index) {
-                            file = getMusic(getMusicList()[index[0]]); 
-                        } else {
-                            file = getMusic(decodeURIComponent(music));
-                        }
-                        if (file) {
-                            // response.setHeader('content-length', file.readableLength);
-                            file.pipe(response);
-                            return;
-                        }
-                    } else {
-                        response.setHeader("contentType", 'application/json; charset=utf-8');
-                        response.write('<html><head><meta charset="UTF-8"><body>');
-                        response.write(getMusicList().map(music => `<a href="/music/${encodeURI(music)}">${music}</a>`).join("<br />"));
-                        response.write(`<script>function f(u){fetch("/music", {method:"post",body:u}).then(r=>{if(r.ok)document.getElementById('new').value=''})}</script>`);
-                        response.write(`<input id='new' /><button onclick="f(document.getElementById('new').value)">Add</button>`);
-                        response.write('</body></html>');
-                    }
-                    response.end();
-                    break;
-                }
-                case "POST":
-                {
-                    let link = '';
-                    request.on('data', (data) => {
-                        link += data;
-                    });
-                    request.on('end', () => {
-                        downloadByYTDL(link, (file) => {
-                            if (!file) {
-                                response.end("download error");
+                    {
+                        if (music) {
+                            let index = music.match(/^\d+$/);
+                            response.setHeader("content-type", "audio/mpeg");
+                            let file;
+                            if (index) {
+                                file = getMusic(getMusicList()[index[0]]);
+                            } else {
+                                file = getMusic(decodeURIComponent(music));
+                            }
+                            if (file) {
+                                // response.setHeader('content-length', file.readableLength);
+                                file.pipe(response);
                                 return;
                             }
-                            convertToMP3(file, (music) => {
-                                if (music) {
-                                    fs.unlinkSync(file);
-                                    moveMusic(music)
-                                }
-                            });
-                            response.end();
+                        } else {
+                            response.setHeader("contentType", 'application/json; charset=utf-8');
+                            response.write('<html><head><meta charset="UTF-8"><body>');
+                            response.write(getMusicList().map(music => `<a href="/music/${encodeURI(music)}">${music}</a>`).join("<br />"));
+                            response.write(`<script>function f(u){fetch("/music", {method:"post",body:u}).then(r=>{if(r.ok)document.getElementById('new').value=''})}</script>`);
+                            response.write(`<input id='new' /><button onclick="f(document.getElementById('new').value)">Add</button>`);
+                            response.write('</body></html>');
+                        }
+                        response.end();
+                        break;
+                    }
+                case "POST":
+                    {
+                        let link = '';
+                        request.on('data', (data) => {
+                            link += data;
                         });
-                    });
-                    break;
-                }
+                        request.on('end', () => {
+                            downloadByYTDL(link, (file) => {
+                                if (!file) {
+                                    response.end("download error");
+                                    return;
+                                }
+                                convertToMP3(file, (music) => {
+                                    if (music) {
+                                        fs.unlinkSync(file);
+                                        moveMusic(music.replace(/^"/, "").replace(/"$/, ""))
+                                    }
+                                });
+                                response.end();
+                            });
+                        });
+                        break;
+                    }
                 default:
-                {
-                    response.end();
-                }
+                    {
+                        response.end();
+                    }
             }
         } else {
             response.end();
@@ -156,7 +152,8 @@ function startServer(port = 8889) {
 
 function moveMusic(tmpmp3) {
     // let tmp = path.join(LOCALBASEPATH, 'tmp', tmpmp3)
-    fs.renameSync(tmpmp3, tmpmp3.replace("/tmp/", "/mp3/"))
+    fs.copyFileSync(tmpmp3, tmpmp3.replace(/([/\\]?)tmp([/\\])/, "$1mp3$2"))
+    fs.unlinkSync(tmpmp3)
 }
 function getMusicList() {
     return fs.readdirSync(path.join(LOCALBASEPATH, 'mp3'));
